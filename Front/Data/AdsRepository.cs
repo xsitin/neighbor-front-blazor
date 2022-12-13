@@ -29,7 +29,7 @@ public class AdsRepository
     private async Task<string> GetToken()
     {
         var securityToken = await StorageService.GetAsync<SecurityToken>(nameof(SecurityToken));
-        return securityToken.AccessToken;
+        return securityToken?.AccessToken;
     }
 
     public async Task<PaginationInfo<Ad>> GetPopularAsync(int page = 1, int pageSize = 21)
@@ -69,19 +69,19 @@ public class AdsRepository
         };
         var request = new HttpRequestMessage(HttpMethod.Get,
             new Uri(client.BaseAddress, $"ads/getUserAds/{login}" + queryBuilder.ToQueryString()));
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
         var response = await client.SendAsync(request);
-        return await response.Content.ReadFromJsonAsync<PaginationInfo<Ad>>();
+        return await response.Content.ReadFromJsonAsync<PaginationInfo<Ad>>(
+            new JsonSerializerOptions(JsonSerializerDefaults.Web));
     }
 
-    public async Task<PaginationInfo<Ad>> GetWithCategory(string category, int count = 21, int offset = 1)
+    public async Task<PaginationInfo<Ad>> GetWithCategory(string category, int page = 1, int pageSize = 21)
     {
         var client = ClientFactory.CreateClient(Constants.ApiClientName);
         var queryBuilder = new QueryBuilder(new[]
         {
             new KeyValuePair<string, string>(nameof(category), category),
-            new KeyValuePair<string, string>(nameof(count), count.ToString()),
-            new KeyValuePair<string, string>(nameof(offset), offset.ToString()),
+            new KeyValuePair<string, string>("pageSize", pageSize.ToString(NumberFormatInfo.InvariantInfo)),
+            new KeyValuePair<string, string>("page", page.ToString(NumberFormatInfo.InvariantInfo)),
         });
         var uri = new Uri(client.BaseAddress, "ads/categories" + queryBuilder.ToQueryString());
         var request = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -91,14 +91,15 @@ public class AdsRepository
         return ads;
     }
 
-    public async Task<PaginationInfo<Ad>> SearchWithTitle(string query, int count = 21, int page = 1)
+    public async Task<PaginationInfo<Ad>> SearchWithTitle(string query, int page = 1, int pageSize = 21)
     {
         var client = ClientFactory.CreateClient(Constants.ApiClientName);
         var queryBuilder = new QueryBuilder(new[]
         {
-            new KeyValuePair<string, string>(nameof(query), query),
-            new KeyValuePair<string, string>(nameof(count), count.ToString()),
-            new KeyValuePair<string, string>(nameof(page), page.ToString()),
+            new KeyValuePair<string, string>(nameof(query), query), new KeyValuePair<string, string>(
+                nameof(pageSize),
+                pageSize.ToString(NumberFormatInfo.InvariantInfo)),
+            new KeyValuePair<string, string>(nameof(page), page.ToString(NumberFormatInfo.InvariantInfo)),
         });
         var uri = new Uri(client.BaseAddress, "ads/search" + queryBuilder.ToQueryString());
         var request = new HttpRequestMessage(HttpMethod.Get, uri);

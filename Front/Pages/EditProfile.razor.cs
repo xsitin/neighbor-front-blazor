@@ -1,14 +1,12 @@
 ﻿namespace Board.Pages;
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Common.Models;
 using Data;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 
 public partial class EditProfile

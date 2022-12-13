@@ -31,12 +31,6 @@ public partial class PaginationComponent
     private string IsDisabledPreviousPageArrow => PaginationInfo.Page > 1 ? "" : "disabled";
     private string IsDisabledNextPageArrow => PaginationInfo.Page < PaginationInfo.PageCount ? "" : "disabled";
 
-    public void SetPage(int pageNumber)
-    {
-        PaginationInfo.Page = pageNumber;
-        StateHasChanged();
-    }
-
     private string PageButtonActive(int pageNumber) => PaginationInfo.Page == pageNumber ? "active" : "";
 
     private string GetPageRelativeAddress(int pageNumber) => new Uri(BaseUri, $"page/{pageNumber}").ToString();

@@ -18,6 +18,7 @@ public partial class Index
     }
 
     private string SearchTitle { get; set; }
+    private string Category { get; set; }
     [Inject] private AdsRepository Repository { get; set; }
 
     [Inject] public NavigationManager NavigationManager { get; set; }
@@ -27,20 +28,13 @@ public partial class Index
 
     protected override async Task OnInitializedAsync()
     {
-        if (PageInfo != null)
-            PageInfo = await Repository.GetPopularAsync(PageInfo.Page, PageInfo.PageSize);
-        else
-            PageInfo = await Repository.GetPopularAsync();
-
+        PageInfo = await GetUpdatedAds();
 
         async void AdsUpdater(object sender, LocationChangedEventArgs args)
         {
             if (args.Location == NavigationManager.Uri)
             {
-                if (PageInfo != null)
-                    PageInfo = await Repository.GetPopularAsync(PageInfo.Page, PageInfo.PageSize);
-                else
-                    PageInfo = await Repository.GetPopularAsync();
+                PageInfo = await GetUpdatedAds();
                 StateHasChanged();
             }
             else
@@ -50,21 +44,34 @@ public partial class Index
         NavigationManager.LocationChanged += AdsUpdater;
     }
 
-    public async Task CategorySelected(string category)
+    private async Task<PaginationInfo<Ad>> GetUpdatedAds()
     {
+        if (PageInfo == null)
+            return await Repository.GetPopularAsync();
+        if (!string.IsNullOrEmpty(SearchTitle))
+            return await Repository.SearchWithTitle(SearchTitle, PageInfo.Page, PageInfo.PageSize);
+        if (!string.IsNullOrEmpty(Category))
+            return await Repository.GetWithCategory(Category, PageInfo.Page, PageInfo.PageSize);
+        return await Repository.GetPopularAsync(PageInfo.Page, PageInfo.PageSize);
+    }
+
+    private async Task CategorySelected(string category)
+    {
+        Category = category;
+        SearchTitle = "";
         PageInfo = await Repository.GetWithCategory(category);
     }
 
 
-    public async Task SearchAdsWithSelectedTitle()
+    private async Task SearchAdsWithSelectedTitle()
     {
         if (string.IsNullOrEmpty(SearchTitle?.Trim()))
         {
+            SearchTitle = "";
+            Category = "";
             PageInfo = await Repository.GetPopularAsync();
         }
         else
-        {
             PageInfo = await Repository.SearchWithTitle(SearchTitle);
-        }
     }
 }
