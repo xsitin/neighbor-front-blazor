@@ -117,9 +117,9 @@ public class AdsRepository
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
 
         var content = new MultipartFormDataContent();
-        content.Add(new StringContent(JsonSerializer.Serialize(ad)), nameof(Ad));
+        content.Add(JsonContent.Create(ad, MediaTypeHeaderValue.Parse("application/json")), nameof(Ad));
         foreach (var image in images)
-            content.Add(new StreamContent(image.OpenReadStream(int.MaxValue)), image.Name, image.Name);
+            content.Add(new StreamContent(image.OpenReadStream(int.MaxValue)), nameof(images), image.Name);
 
         request.Content = content;
         await client.SendAsync(request);
